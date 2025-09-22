@@ -1,8 +1,11 @@
 package de.neuefische.springexceptionhandlingtask;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -12,7 +15,7 @@ public class AnimalController {
     @GetMapping("{species}")
     String getAnimalSpecies(@PathVariable String species) {
         if (!species.equals("dog")) {
-            throw new IllegalArgumentException("Only 'dog' is allowed");
+            throw new SpeciesIsIllegalException("Only 'dog' is allowed");
         }
         return species;
     }
@@ -22,10 +25,23 @@ public class AnimalController {
         throw new NoSuchElementException("No Animals found");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(SpeciesIsIllegalException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public String HandlerIllegalArgumentException(IllegalArgumentException e) {
-        return e.getMessage();
+    public String HandlerIllegalArgumentException(SpeciesIsIllegalException e, HttpServletRequest request) {
+        ErrorMessage body = new ErrorMessage(
+                Instant.now(),
+                HttpStatus.NOT_ACCEPTABLE.value(),
+                HttpStatus.NOT_ACCEPTABLE.getReasonPhrase(),
+                e.getMessage(),
+                request.getRequestURI()
+        );
+        return "Error: " + body.message() +
+                "\n[Reason: " + body.error() +
+                "\nStatuscode: " + body.status() +
+                "\nTime: " + body.timestamp() +
+                "\nPath: " + body.path() +
+                "]";
+
     }
 
 }
