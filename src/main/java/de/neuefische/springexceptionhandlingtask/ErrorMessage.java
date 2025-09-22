@@ -1,4 +1,7 @@
 package de.neuefische.springexceptionhandlingtask;
 
-public record ErrorMessage() {
+import java.util.NoSuchElementException;
+
+public record ErrorMessage(String message) {
+
 }
